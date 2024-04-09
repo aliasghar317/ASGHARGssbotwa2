@@ -202,6 +202,8 @@ async function sendTypingEffect(gss, m, message, typingSpeed) {
 
 
 
+
+
 function formatBytes(bytes) {
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   if (bytes === 0) return '0 Byte';
@@ -529,6 +531,8 @@ if (!isCreator && global.onlypc && m.isGroup) {
     return m.reply("Hello, if you want to use this bot, please chat privately with the bot.")
 }
 
+
+
         if (global.autoTyping) {
     if (m.chat) {
         gss.sendPresenceUpdate("composing", m.chat);
@@ -557,7 +561,9 @@ if (global.autoBlock && m.sender.startsWith('212')) {
     gss.updateBlockStatus(m.sender, 'block');
 }
 }
-   
+
+
+
    
 	    
 moment.tz.setDefault("Asia/Kolkata").locale("id");
@@ -899,8 +905,7 @@ const subMenus = {
 
 const lowerText = m.text.toLowerCase();
 
-if (command === 'menu') {
-    if (menuType === '1') {
+if (command === 'menu2') {
         await gss.sendMessage(m.chat, {
             image: { url: 'https://telegra.ph/file/61eec5ebaeef2a046a914.jpg' },
             caption: menuMessage,
@@ -913,11 +918,6 @@ if (command === 'menu') {
                 }
             }
         }, { quoted: m });
-    } else if (menuType === '2') {
-        if (isBan) return m.reply(mess.banned);
-        if (isBanChat) return m.reply(mess.bangc);
-        
-        await gss.sendPoll(m.chat, "List Menu", ['.Allmenu', '.Groupmenu', '.Downloadmenu', '.Searchmenu', '.Funmenu', '.Toolmenu', '.Convertmenu', '.aimenu', '.Mainmenu', '.Ownermenu'], { quoted: m });
     } else if (/^\d+$/.test(lowerText) && m.quoted) {
         const quotedText = m.quoted.text.toLowerCase();
 
@@ -943,7 +943,6 @@ if (command === 'menu') {
             }
         }
     }
-}
 
 
 	    
@@ -5559,6 +5558,16 @@ case 'bass': case 'blown': case 'deep': case 'earrape': case 'fast': case 'fat':
     }
     break;
 
+case 'menu':
+case 'help':
+case 'list':
+case 'listmenu':
+{
+  if (isBan) return m.reply(mess.banned);
+        if (isBanChat) return m.reply(mess.bangc);
+    gss.sendPoll(m.chat, "List Menu", ['.Allmenu', '.Groupmenu', '.Downloadmenu', '.Searchmenu', '.Funmenu', '.Toolmenu', '.Convertmenu', '.aimenu', '.Mainmenu', '.Ownermenu'], { quoted: m });
+}
+break;
 
             
 
@@ -6106,32 +6115,6 @@ break;
                         if (stdout) return m.reply(stdout)
                     })
                 }
-			
-		if (m.chat.endsWith('@s.whatsapp.net') && isCmd) {
-                    let room = Object.values(db.data.anonymous).find(room => [room.a, room.b].includes(m.sender) && room.state === 'CHATTING')
-                    if (room) {
-                        if (/^.*(next|leave|start)/.test(m.text)) return
-                        if (['.next', '.leave', '.stop', '.start', 'Cari Partner', 'Keluar', 'Lanjut', 'Stop'].includes(m.text)) return
-                        let other = [room.a, room.b].find(user => user !== m.sender)
-                        m.copyNForward(other, true, m.quoted && m.quoted.fromMe ? {
-                            contextInfo: {
-                                ...m.msg.contextInfo,
-                                forwardingScore: 99999,
-                                isForwarded: true,
-                                participant: other
-                            }
-                        } : {})
-                    }
-                    return !0
-                }
-			
-		if (isCmd && budy.toLowerCase() != undefined) {
-		    if (m.chat.endsWith('broadcast')) return
-		    if (m.isBaileys) return
-		    let msgs = global.db.data.database
-		    if (!(budy.toLowerCase() in msgs)) return
-		    gss.copyNForward(m.chat, msgs[budy.toLowerCase()], true)
-		}
         
     } catch (err) {
         m.reply(util.format(err))
