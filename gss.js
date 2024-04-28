@@ -57,7 +57,7 @@ const acr = new acrcloud({
     access_key: 'c33c767d683f78bd17d4bd4991955d81',
     access_secret: 'bvgaIAEtADBTbLwiPGYlxupWqkNGIjT7J9Ag2vIu'
 });
-const apiKey = "AIzaSyChpx8N6gNWPOZoKCsJxbdnVbNvolEoito";
+const apiKey = "AIzaSyAFKLsFovEAwKkjScCZMdJwn4V6Ns2VJzA";
 const genAI = new GoogleGenerativeAI(apiKey);
 const tempMailAddresses = {};
 const defaultLang = 'en'
@@ -435,7 +435,7 @@ try {
             }
     
 
-
+/*
 let chats = db.data.chats[m.chat]
             if (typeof chats !== 'object') db.data.chats[m.chat] = {}
             if (chats) {
@@ -450,6 +450,24 @@ let chats = db.data.chats[m.chat]
                 antilink: false,
             }
 
+*/
+
+
+let chats = db.data.chats[m.chat]
+if (typeof chats !== 'object') db.data.chats[m.chat] = {}
+if (chats) {
+    if (!('antiviewonce' in chats)) chats.antiviewonce = false
+    if (!('antibot' in chats)) chats.antibot = true
+    if (!('mute' in chats)) chats.mute = false
+    if (!('antilink' in chats)) chats.antilink = false
+    if (!('antidelete' in chats)) chats.antidelete = true // Add 'antidelete' if not present
+} else global.db.data.chats[m.chat] = {
+    antiviewonce: true,
+    antibot: true,
+    mute: false,
+    antilink: false,
+    antidelete: true, // Add 'antidelete' by default
+}
 
 
 	    let setting = db.data.settings[botNumber]
@@ -3377,7 +3395,7 @@ case '𝗡𝗘𝗫𝗧': {
 
 async function instaDownload(url) {
     try {
-        const apiUrl = `https://instagramdownloader.apinepdev.workers.dev/?url=${encodeURIComponent(url)}`;
+        const apiUrl = `https://aiodownloader.onrender.com/download?url=${encodeURIComponent(url)}`;
         const response = await fetch(apiUrl);
 
         if (!response.ok) {
@@ -3393,56 +3411,31 @@ async function instaDownload(url) {
     }
 }
 
-async function downloadInstagramMedia(url) {
-    try {
-        const result = await instaDownload(url);
-
-        console.log('API Response:', result);
-
-        if (result.status && result.data && result.data.length > 0) {
-            const mediaType = result.data[0].type;
-            const mediaUrl = result.data[0].url;
-
-            if (mediaType && mediaUrl) {
-                return { type: mediaType, url: mediaUrl };
-            } else {
-                throw new Error('Media type or URL not found in API response');
-            }
-        } else {
-            throw new Error('Invalid or unexpected API response');
-        }
-    } catch (error) {
-        console.error('Error downloading Instagram media:', error.message);
-        throw error;
-    }
-}
-
-
-async function downloadAndSendMedia(m, text, isDocument) {
+async function downloadAndSendMedia(m, text) {
     const url = text;
 
     if (!url) {
         return m.reply(`Where is the link?\n\nExample: ${prefix + command} https://www.instagram.com/p/CK0tLXyAzEI`);
     }
 
-    m.reply(mess.wait);
+    m.reply('Please wait, downloading media...');
 
     try {
-        const media = await downloadInstagramMedia(url);
+        const { status, data } = await instaDownload(url);
 
-        const response = await fetch(media.url);
-        const bufferArray = await response.arrayBuffer();
-        const fileBuffer = Buffer.from(bufferArray);
+        if (status && data && data.low) {
+            const mediaUrl = data.low;
 
-        const fileName = `instagram_media.${media.type === 'image' ? 'jpg' : 'mp4'}`;
+            const response = await fetch(mediaUrl);
+            const bufferArray = await response.arrayBuffer();
+            const fileBuffer = Buffer.from(bufferArray);
 
-        
-        if (isDocument) {
-            await gss.sendMessage(m.chat, { document: fileBuffer, mimetype: `video/mp4`, fileName, caption: 'Downloaded by gss botwa' }, { quoted: m });
-        } else {
-            if (media.type === 'image') {
+            const mediaType = mediaUrl.endsWith('.mp4') ? 'video' : 'image';
+            const fileName = `instagram_media.${mediaType === 'image' ? 'jpg' : 'mp4'}`;
+
+            if (mediaType === 'image') {
                 await gss.sendMessage(m.chat, { image: fileBuffer, mimetype: 'image/jpeg', fileName, caption: 'Downloaded by gss botwa' }, { quoted: m });
-            } else if (media.type === 'video') {
+            } else if (mediaType === 'video') {
                 await gss.sendMessage(m.chat, { video: fileBuffer, mimetype: 'video/mp4', fileName, caption: 'Downloaded by gss botwa' }, { quoted: m });
             } else {
                 throw new Error('Unsupported media type');
@@ -3453,6 +3446,8 @@ async function downloadAndSendMedia(m, text, isDocument) {
         return m.reply(`An error occurred: ${error.message}`);
     }
 }
+
+
 
 
 case 'igdl':
